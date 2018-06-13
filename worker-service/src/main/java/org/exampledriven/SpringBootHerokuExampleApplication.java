@@ -28,23 +28,18 @@ public class SpringBootHerokuExampleApplication {
     }
 
     @Bean
-    TopicExchange exchange1(){
+    TopicExchange exchange(){
         return new TopicExchange("pdf-merge-exchange");
     }
 
     @Bean
-    TopicExchange exchange2(){
-        return new TopicExchange("pdf-split-exchange");
+    Binding binding1(TopicExchange topicExchange){
+        return BindingBuilder.bind(queue1()).to(topicExchange).with(PDF_MERGE_QUEUE);
     }
 
     @Bean
-    Binding binding1(Queue queue1, TopicExchange topicExchange1){
-        return BindingBuilder.bind(queue1).to(topicExchange1).with(PDF_MERGE_QUEUE);
-    }
-
-    @Bean
-    Binding binding2(Queue queue2, TopicExchange topicExchange3){
-        return BindingBuilder.bind(queue2).to(topicExchange3).with(PDF_SPLIT_QUEUE);
+    Binding binding2(TopicExchange topicExchange){
+        return BindingBuilder.bind(queue2()).to(topicExchange).with(PDF_SPLIT_QUEUE);
     }
 
     @Bean
