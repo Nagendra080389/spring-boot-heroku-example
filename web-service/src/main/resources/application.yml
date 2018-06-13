@@ -15,7 +15,10 @@ spring:
       async:
         request-timeout: 3600000
     rabbitmq:
-      addresses: amqp://uyjgxslh:06EXxqvYf5bnI2P6o6143NBeGTMYFqyY@puma.rmq.cloudamqp.com/uyjgxslh
+      host: puma.rmq.cloudamqp.com
+      port: 1883
+      username: uyjgxslh:uyjgxslh
+      password: 06EXxqvYf5bnI2P6o6143NBeGTMYFqyY
 server:
   port: ${PORT}
 worker:
