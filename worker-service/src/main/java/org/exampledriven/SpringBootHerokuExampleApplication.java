@@ -15,20 +15,36 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication
 public class SpringBootHerokuExampleApplication {
     public final static String PDF_MERGE_QUEUE= "pdf-merge-queue";
+    public static final String PDF_SPLIT_QUEUE = "pdf-split-queue";
 
     @Bean
-    Queue queue(){
+    Queue queue1(){
         return new Queue(PDF_MERGE_QUEUE, false);
     }
 
     @Bean
-    TopicExchange exchange(){
+    Queue queue2(){
+        return new Queue(PDF_SPLIT_QUEUE, false);
+    }
+
+    @Bean
+    TopicExchange exchange1(){
         return new TopicExchange("pdf-merge-exchange");
     }
 
     @Bean
-    Binding binding(Queue queue, TopicExchange topicExchange){
-        return BindingBuilder.bind(queue).to(topicExchange).with(PDF_MERGE_QUEUE);
+    TopicExchange exchange2(){
+        return new TopicExchange("pdf-split-exchange");
+    }
+
+    @Bean
+    Binding binding1(Queue queue1, TopicExchange topicExchange1){
+        return BindingBuilder.bind(queue1).to(topicExchange1).with(PDF_MERGE_QUEUE);
+    }
+
+    @Bean
+    Binding binding2(Queue queue2, TopicExchange topicExchange3){
+        return BindingBuilder.bind(queue2).to(topicExchange3).with(PDF_SPLIT_QUEUE);
     }
 
     @Bean
@@ -36,14 +52,19 @@ public class SpringBootHerokuExampleApplication {
                                              MessageListenerAdapter listenerAdapter){
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        container.setQueueNames(PDF_MERGE_QUEUE);
+        container.setQueueNames(PDF_MERGE_QUEUE, PDF_SPLIT_QUEUE);
         container.setMessageListener(listenerAdapter);
         return container;
     }
 
     @Bean
-    MessageListenerAdapter listenerAdapter(RabbitMQListener rabbitMQListener){
-        return new MessageListenerAdapter(rabbitMQListener, "receiveMessage");
+    MessageListenerAdapter listenerAdapter1(RabbitMQListener rabbitMQListener){
+        return new MessageListenerAdapter(rabbitMQListener, "mergeProcess");
+    }
+
+    @Bean
+    MessageListenerAdapter listenerAdapter2(RabbitMQListener rabbitMQListener){
+        return new MessageListenerAdapter(rabbitMQListener, "splitProcess");
     }
 
     public static void main(String[] args) {

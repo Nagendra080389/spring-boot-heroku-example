@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 public class SpringBootHerokuExampleApplication {
 
     public final static String PDF_MERGE_QUEUE= "pdf-merge-queue";
+    public static final String PDF_SPLIT_QUEUE = "pdf-split-queue";
 
 
 
