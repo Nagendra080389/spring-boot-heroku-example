@@ -26,10 +26,22 @@
         <full-artifact-name>target/${project.artifactId}-${project.version}.jar</full-artifact-name>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>project.local</id>
+            <name>project</name>
+            <url>file:${project.basedir}/repo</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -41,6 +53,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>
