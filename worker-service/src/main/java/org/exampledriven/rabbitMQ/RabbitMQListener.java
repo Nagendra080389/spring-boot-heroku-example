@@ -47,7 +47,14 @@ public class RabbitMQListener {
 
     public void mergeanduploadPDF(String file1Ids, String accessToken, String instanceURL, boolean useSoap, File fileToBeMerged) {
 
-        System.out.println("Querying for the mail request...");
+        LOGGER.info("Querying for the mail request...");
+        LOGGER.info("file1Ids..."+file1Ids);
+        LOGGER.info("accessToken..."+accessToken);
+        LOGGER.info("instanceURL..."+instanceURL);
+        LOGGER.info("useSoap..."+useSoap);
+        LOGGER.info("fileToBeMerged..."+fileToBeMerged.getName());
+        LOGGER.info("fileToBeMerged..."+fileToBeMerged.getAbsolutePath());
+
 
         ConnectorConfig config = new ConnectorConfig();
         config.setSessionId(accessToken);
@@ -70,7 +77,7 @@ public class RabbitMQListener {
 
                 ContentVersion[] record = new ContentVersion[1];
                 ContentVersion mergedContentData = new ContentVersion();
-                mergedContentData.setVersionData(readFromFile(fileToBeMerged.getName()));
+                mergedContentData.setVersionData(readFromFile(fileToBeMerged));
                 mergedContentData.setFirstPublishLocationId(parentId);
                 mergedContentData.setTitle("Merged Document");
                 mergedContentData.setPathOnClient("/CombinedPDFDocument.pdf");
@@ -103,9 +110,9 @@ public class RabbitMQListener {
 
     }
 
-    public static byte[] readFromFile(String fileName) throws IOException {
+    public static byte[] readFromFile(File fileName) throws IOException {
         byte[] buf = new byte[8192];
-        try (InputStream is = Files.newInputStream(Paths.get(fileName))) {
+        try (InputStream is = Files.newInputStream(fileName.toPath())) {
             int len = is.read(buf);
             if (len < buf.length) {
                 return Arrays.copyOf(buf, len);
