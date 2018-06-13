@@ -1,4 +1,5 @@
 package org.exampledriven.rabbitMQ;
+
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.BadPdfFormatException;
@@ -16,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -34,16 +36,16 @@ public class RabbitMQListener {
     private static final ExecutorService THREADPOOL = Executors.newCachedThreadPool();
 
     @RabbitListener(queues = SpringBootHerokuExampleApplication.PDF_MERGE_QUEUE)
-    public void mergeProcess(BigOpertaion bigOpertaion){
-        mergeanduploadPDF(bigOpertaion.getFileIds(), bigOpertaion.getAccessToken(), bigOpertaion.getInstanceURL(), bigOpertaion.isUseSoap());
+    public void mergeProcess(BigOpertaion bigOpertaion) {
+        mergeanduploadPDF(bigOpertaion.getFileIds(), bigOpertaion.getAccessToken(), bigOpertaion.getInstanceURL(), bigOpertaion.isUseSoap(), bigOpertaion.getFileToBeMerged());
     }
 
     @RabbitListener(queues = SpringBootHerokuExampleApplication.PDF_SPLIT_QUEUE)
-    public void splitProcess(BigOpertaion bigOpertaion){
+    public void splitProcess(BigOpertaion bigOpertaion) {
 
     }
 
-    public void mergeanduploadPDF(String file1Ids, String accessToken, String instanceURL, boolean useSoap) {
+    public void mergeanduploadPDF(String file1Ids, String accessToken, String instanceURL, boolean useSoap, File fileToBeMerged) {
 
         System.out.println("Querying for the mail request...");
 
@@ -55,110 +57,44 @@ public class RabbitMQListener {
             config.setServiceEndpoint(instanceURL + "/services/Soap/T/40.0");
         }
 
-        List<File> inputFiles = new ArrayList<File>();
+        String[] split = file1Ids.split(",");
+        String parentId = split[split.length-1];
+
 
         try {
 
-            THREADPOOL.execute(new Runnable() {
-                @Override
-                public void run() {
-                    String[] split = file1Ids.split(",");
-                    String parentId = split[split.length-1];
-                    StringBuilder buff = new StringBuilder();
-                    String sep = "";
-                    for (String str : split) {
-                        if(str != parentId) {
-                            buff.append(sep);
-                            buff.append("'"+str+"'");
-                            sep = ",";
+
+            try {
+                connection = Connector.newConnection(config);
+
+
+                ContentVersion[] record = new ContentVersion[1];
+                ContentVersion mergedContentData = new ContentVersion();
+                mergedContentData.setVersionData(readFromFile(fileToBeMerged.getName()));
+                mergedContentData.setFirstPublishLocationId(parentId);
+                mergedContentData.setTitle("Merged Document");
+                mergedContentData.setPathOnClient("/CombinedPDFDocument.pdf");
+
+                record[0] = mergedContentData;
+
+
+                // create the records in Salesforce.com
+                SaveResult[] saveResults = connection.create(record);
+
+                // check the returned results for any errors
+                for (int i = 0; i < saveResults.length; i++) {
+                    if (saveResults[i].isSuccess()) {
+                        System.out.println(i + ". Successfully created record - Id: " + saveResults[i].getId());
+                    } else {
+                        Error[] errors = saveResults[i].getErrors();
+                        for (int j = 0; j < errors.length; j++) {
+                            System.out.println("ERROR creating record: " + errors[j].getMessage());
                         }
-                    }
-                    String queryIds = buff.toString();
-
-                    try {
-                        connection = Connector.newConnection(config);
-                        QueryResult queryResults = connection.query(
-                                "Select Id,VersionData from ContentVersion where Id IN (Select LatestPublishedVersionId from ContentDocument where Id IN ("
-                                        + queryIds + "))");
-
-                        boolean done = false;
-
-                        if (queryResults.getSize() > 0) {
-                            while (!done) {
-                                for (SObject sObject : queryResults.getRecords()) {
-                                    ContentVersion contentData = (ContentVersion) sObject;
-                                    File tempFile = File.createTempFile("test_", ".pdf", null);
-                                    try (OutputStream os = Files.newOutputStream(Paths.get(tempFile.toURI()))) {
-                                        os.write(contentData.getVersionData());
-                                    }
-                                    inputFiles.add(tempFile);
-                                }
-                                if (queryResults.isDone()) {
-                                    done = true;
-                                }else {
-                                    queryResults = connection.queryMore(queryResults.getQueryLocator());
-                                }
-
-                            }
-                        }
-
-                        Document PDFCombineUsingJava = new Document();
-                        PdfSmartCopy copy = new PdfSmartCopy(PDFCombineUsingJava, new FileOutputStream("CombinedPDFDocument.pdf"));
-                        PDFCombineUsingJava.open();
-                        int number_of_pages = 0;
-                        inputFiles.parallelStream().forEachOrdered(inputFile -> {
-                            try {
-                                createFiles(inputFile, number_of_pages, copy);
-                            } catch (IOException | BadPdfFormatException e) {
-                                e.printStackTrace();
-                            }
-                        });
-
-                        PDFCombineUsingJava.close();
-                        copy.close();
-                        File mergedFile = new File("CombinedPDFDocument" + ".pdf");
-                        mergedFile.createNewFile();
-
-                        LOGGER.info("Creating ContentVersion record...");
-                        ContentVersion[] record = new ContentVersion[1];
-                        ContentVersion mergedContentData = new ContentVersion();
-                        mergedContentData.setVersionData(readFromFile(mergedFile.getName()));
-                        mergedContentData.setFirstPublishLocationId(parentId);
-                        mergedContentData.setTitle("Merged Document");
-                        mergedContentData.setPathOnClient("/CombinedPDFDocument.pdf");
-
-                        record[0] = mergedContentData;
-
-
-                        // create the records in Salesforce.com
-                        SaveResult[] saveResults = connection.create(record);
-
-                        // check the returned results for any errors
-                        for (int i = 0; i < saveResults.length; i++) {
-                            if (saveResults[i].isSuccess()) {
-                                System.out.println(i + ". Successfully created record - Id: " + saveResults[i].getId());
-                            } else {
-                                Error[] errors = saveResults[i].getErrors();
-                                for (int j = 0; j < errors.length; j++) {
-                                    System.out.println("ERROR creating record: " + errors[j].getMessage());
-                                }
-                            }
-                        }
-                    } catch (ConnectionException | IOException | DocumentException e) {
-                        e.printStackTrace();
                     }
                 }
-
-                private void createFiles(File inputFile, int number_of_pages, PdfSmartCopy copy) throws IOException, BadPdfFormatException {
-                    PdfReader ReadInputPDF = new PdfReader(inputFile.toString());
-                    number_of_pages = ReadInputPDF.getNumberOfPages();
-                    for (int page = 0; page < number_of_pages; ) {
-                        copy.addPage(copy.getImportedPage(ReadInputPDF, ++page));
-                    }
-                    copy.freeReader(ReadInputPDF);
-                    ReadInputPDF.close();
-                }
-            });
+            } catch (ConnectionException | IOException e) {
+                e.printStackTrace();
+            }
 
 
         } catch (Exception e) {
@@ -174,7 +110,7 @@ public class RabbitMQListener {
             if (len < buf.length) {
                 return Arrays.copyOf(buf, len);
             }
-            try(ByteArrayOutputStream os = new ByteArrayOutputStream(16384)){
+            try (ByteArrayOutputStream os = new ByteArrayOutputStream(16384)) {
                 while (len != -1) {
                     os.write(buf, 0, len);
                     len = is.read(buf);

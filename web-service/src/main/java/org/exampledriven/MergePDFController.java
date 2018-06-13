@@ -3,6 +3,7 @@ package org.exampledriven;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.exampledriven.rabbitMQ.BigOpertaion;
+import org.exampledriven.rabbitMQ.RabbitMQSender;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,10 @@ public class MergePDFController {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MergePDFController.class);
 
+
+
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    private RabbitMQSender rabbitMQSender;
 
 
     @RequestMapping(value = "/MergeNSplitService/merge", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON)
@@ -37,7 +40,7 @@ public class MergePDFController {
         bigOpertaion.setAccessToken(accessToken);
         bigOpertaion.setInstanceURL(instanceURL);
         bigOpertaion.setUseSoap(useSoap);
-        rabbitTemplate.convertAndSend(SpringBootHerokuExampleApplication.PDF_MERGE_QUEUE, bigOpertaion);
+        rabbitMQSender.merge(bigOpertaion);
         return gson.toJson("Merge PDF SUCCESS");
 
     }
