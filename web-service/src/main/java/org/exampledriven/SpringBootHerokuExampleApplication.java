@@ -24,7 +24,7 @@ public class SpringBootHerokuExampleApplication {
 
     @Bean
     TopicExchange exchange(){
-        return new TopicExchange("pdf-nerge-exchange");
+        return new TopicExchange("pdf-merge-exchange");
     }
 
     @Bean
