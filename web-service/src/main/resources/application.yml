@@ -1,26 +1,11 @@
-server:
-  port: 8080
-worker:
-  scheme: http
-  host: localhost
-  port: 8081
-logging:
-  level:
-    org.exampledriven: DEBUG
-
 spring:
-  profiles: heroku
-  mvc:
-  async:
-    request-timeout: 3600000
-  rabbitmq:
-    host: puma.rmq.cloudamqp.com
-    port: 1883
-    username: uyjgxslh:uyjgxslh
-    password: 06EXxqvYf5bnI2P6o6143NBeGTMYFqyY
-server:
-  port: ${PORT}
-worker:
-  scheme: https
-  host: ${WORKER_HOST}
-  port: 443
+    profiles: heroku
+    mvc:
+      async:
+        request-timeout: 3600000
+    rabbitmq:
+      addresses: amqp://uyjgxslh:06EXxqvYf5bnI2P6o6143NBeGTMYFqyY@puma.rmq.cloudamqp.com/uyjgxslh
+      host: puma.rmq.cloudamqp.com
+      port: 1883
+      username: uyjgxslh:uyjgxslh
+      password: 06EXxqvYf5bnI2P6o6143NBeGTMYFqyY
