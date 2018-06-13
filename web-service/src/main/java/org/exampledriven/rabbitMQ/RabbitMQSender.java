@@ -84,43 +84,10 @@ public class RabbitMQSender {
                 }else {
                     queryResults = enterpriseConnection.queryMore(queryResults.getQueryLocator());
                 }
-
             }
         }
-
-        Document PDFCombineUsingJava = new Document();
-        PdfSmartCopy copy = new PdfSmartCopy(PDFCombineUsingJava, new FileOutputStream("CombinedPDFDocument.pdf"));
-        PDFCombineUsingJava.open();
-        int number_of_pages = 0;
-        inputFiles.parallelStream().forEachOrdered(inputFile -> {
-            try {
-                createFiles(inputFile, number_of_pages, copy);
-            } catch (IOException | BadPdfFormatException e) {
-                e.printStackTrace();
-            }
-        });
-
-        PDFCombineUsingJava.close();
-        copy.close();
-
-
-        File mergedFile = new File("CombinedPDFDocument" + ".pdf");
-        mergedFile.createNewFile();
-
-        bigOpertaion.setFileToBeMerged(mergedFile);
-
-
+        bigOpertaion.setFilesToBeMerged(inputFiles);
         rabbitTemplate.convertAndSend(SpringBootHerokuExampleApplication.PDF_MERGE_QUEUE, bigOpertaion);
-    }
-
-    private void createFiles(File inputFile, int number_of_pages, PdfSmartCopy copy) throws IOException, BadPdfFormatException {
-        PdfReader ReadInputPDF = new PdfReader(inputFile.toString());
-        number_of_pages = ReadInputPDF.getNumberOfPages();
-        for (int page = 0; page < number_of_pages; ) {
-            copy.addPage(copy.getImportedPage(ReadInputPDF, ++page));
-        }
-        copy.freeReader(ReadInputPDF);
-        ReadInputPDF.close();
     }
 
 }

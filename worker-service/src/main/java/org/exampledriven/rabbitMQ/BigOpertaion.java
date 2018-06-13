@@ -2,13 +2,14 @@ package org.exampledriven.rabbitMQ;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 
 public class BigOpertaion implements Serializable {
     private String fileIds;
     private String accessToken;
     private String instanceURL;
     private boolean useSoap;
-    private File fileToBeMerged;
+    private List<File> filesToBeMerged;
 
 
     public String getFileIds() {
@@ -43,11 +44,11 @@ public class BigOpertaion implements Serializable {
         this.useSoap = useSoap;
     }
 
-    public File getFileToBeMerged() {
-        return fileToBeMerged;
+    public List<File> getFilesToBeMerged() {
+        return filesToBeMerged;
     }
 
-    public void setFileToBeMerged(File fileToBeMerged) {
-        this.fileToBeMerged = fileToBeMerged;
+    public void setFilesToBeMerged(List<File> filesToBeMerged) {
+        this.filesToBeMerged = filesToBeMerged;
     }
 }
