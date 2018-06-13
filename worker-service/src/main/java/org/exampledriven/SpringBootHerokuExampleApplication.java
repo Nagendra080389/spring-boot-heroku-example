@@ -53,13 +53,8 @@ public class SpringBootHerokuExampleApplication {
     }
 
     @Bean
-    MessageListenerAdapter listenerAdapter1(RabbitMQListener rabbitMQListener){
+    MessageListenerAdapter listenerAdapter(RabbitMQListener rabbitMQListener){
         return new MessageListenerAdapter(rabbitMQListener, "mergeProcess");
-    }
-
-    @Bean
-    MessageListenerAdapter listenerAdapter2(RabbitMQListener rabbitMQListener){
-        return new MessageListenerAdapter(rabbitMQListener, "splitProcess");
     }
 
     public static void main(String[] args) {
