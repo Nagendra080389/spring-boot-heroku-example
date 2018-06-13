@@ -9,5 +9,7 @@ spring:
     mvc:
       async:
         request-timeout: 3600000
+    rabbitmq:
+      addresses: amqp://uyjgxslh:06EXxqvYf5bnI2P6o6143NBeGTMYFqyY@puma.rmq.cloudamqp.com/uyjgxslh
 server:
   port: ${PORT}
