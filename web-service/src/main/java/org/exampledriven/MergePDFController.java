@@ -2,6 +2,8 @@ package org.exampledriven;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.itextpdf.text.DocumentException;
+import com.sforce.ws.ConnectionException;
 import org.exampledriven.rabbitMQ.BigOpertaion;
 import org.exampledriven.rabbitMQ.RabbitMQSender;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.ws.rs.core.MediaType;
+import java.io.IOException;
 
 @RestController
 public class MergePDFController {
@@ -29,7 +32,7 @@ public class MergePDFController {
     public String mergeUsers(@RequestParam("fileIds") String fileIds,
                              @RequestParam("accessToken") String accessToken,
                              @RequestParam("instanceURL") String instanceURL,
-                             @RequestParam("useSoap")boolean useSoap) {
+                             @RequestParam("useSoap")boolean useSoap) throws ConnectionException, DocumentException, IOException {
         Gson gson = new GsonBuilder().disableHtmlEscaping().create();
         LOGGER.info("fileIds -> "+fileIds);
         LOGGER.info("accessToken -> "+accessToken);
