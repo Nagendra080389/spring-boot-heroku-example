@@ -3,9 +3,9 @@ spring:
     mvc:
       async:
         request-timeout: 3600000
-    #rabbitmq:
-      #addresses: amqp://kudacmta:OSGSWOIUGeOVQ3DbQ-IJTZQQHKBm_9WJ@puma.rmq.cloudamqp.com/kudacmta
-      #host: puma-01.rmq.cloudamqp.com
-      #port: 1883
-      #username: kudacmta:kudacmta
-      #password: OSGSWOIUGeOVQ3DbQ-IJTZQQHKBm_9WJ
+    rabbitmq:
+      addresses: amqp://kudacmta:OSGSWOIUGeOVQ3DbQ-IJTZQQHKBm_9WJ@puma.rmq.cloudamqp.com/kudacmta
+      host: puma-01.rmq.cloudamqp.com
+      port: 1883
+      username: kudacmta:kudacmta
+      password: OSGSWOIUGeOVQ3DbQ-IJTZQQHKBm_9WJ

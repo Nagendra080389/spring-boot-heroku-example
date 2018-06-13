@@ -18,8 +18,8 @@ public class MergePDFController {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MergePDFController.class);
 
-    /*@Autowired
-    private RabbitTemplate rabbitTemplate;*/
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
 
     @RequestMapping(value = "/MergeNSplitService/merge", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON)
@@ -37,7 +37,7 @@ public class MergePDFController {
         bigOpertaion.setAccessToken(accessToken);
         bigOpertaion.setInstanceURL(instanceURL);
         bigOpertaion.setUseSoap(useSoap);
-        //rabbitTemplate.convertAndSend(SpringBootHerokuExampleApplication.PDF_MERGE_QUEUE, bigOpertaion);
+        rabbitTemplate.convertAndSend(SpringBootHerokuExampleApplication.PDF_MERGE_QUEUE, bigOpertaion);
         return gson.toJson("Merge PDF SUCCESS");
 
     }
