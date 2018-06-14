@@ -34,57 +34,60 @@ public class RabbitMQSender {
 
     public void merge(BigOpertaion bigOpertaion) throws ConnectionException, IOException, DocumentException {
 
-
-        ConnectorConfig config = new ConnectorConfig();
-        config.setSessionId(bigOpertaion.getAccessToken());
-        if (bigOpertaion.isUseSoap()) {
-            config.setServiceEndpoint(bigOpertaion.getInstanceURL() + "/services/Soap/c/40.0");
-        } else {
-            config.setServiceEndpoint(bigOpertaion.getInstanceURL() + "/services/Soap/T/40.0");
-        }
-
-
-        List<File> inputFiles = new ArrayList<File>();
-
-
-        String[] split = bigOpertaion.getFileIds().split(",");
-        String parentId = split[split.length-1];
-        StringBuilder buff = new StringBuilder();
-        String sep = "";
-        for (String str : split) {
-            if(str != parentId) {
-                buff.append(sep);
-                buff.append("'"+str+"'");
-                sep = ",";
+        EnterpriseConnection enterpriseConnection = null;
+        QueryResult queryResults = null;
+        try {
+            ConnectorConfig config = new ConnectorConfig();
+            config.setSessionId(bigOpertaion.getAccessToken());
+            if (bigOpertaion.isUseSoap()) {
+                config.setServiceEndpoint(bigOpertaion.getInstanceURL() + "/services/Soap/c/40.0");
+            } else {
+                config.setServiceEndpoint(bigOpertaion.getInstanceURL() + "/services/Soap/T/40.0");
             }
-        }
-        String queryIds = buff.toString();
 
-        EnterpriseConnection enterpriseConnection = Connector.newConnection(config);
-
-        QueryResult queryResults = enterpriseConnection.query(
-                "Select Id,VersionData from ContentVersion where Id IN (Select LatestPublishedVersionId from ContentDocument where Id IN ("
-                        + queryIds + "))");
-
-
-        boolean done = false;
-        List<byte[]> listOfbytesFromDB = new ArrayList<>();
-
-        if (queryResults.getSize() > 0) {
-            while (!done) {
-                for (SObject sObject : queryResults.getRecords()) {
-                    ContentVersion contentData = (ContentVersion) sObject;
-                    listOfbytesFromDB.add(contentData.getVersionData());
-                }
-                if (queryResults.isDone()) {
-                    done = true;
-                }else {
-                    queryResults = enterpriseConnection.queryMore(queryResults.getQueryLocator());
+            String[] split = bigOpertaion.getFileIds().split(",");
+            String parentId = split[split.length - 1];
+            StringBuilder buff = new StringBuilder();
+            String sep = "";
+            for (String str : split) {
+                if (str != parentId) {
+                    buff.append(sep);
+                    buff.append("'" + str + "'");
+                    sep = ",";
                 }
             }
+            String queryIds = buff.toString();
+
+            enterpriseConnection = Connector.newConnection(config);
+
+            queryResults = enterpriseConnection.query(
+                    "Select Id,VersionData from ContentVersion where Id IN (Select LatestPublishedVersionId from ContentDocument where Id IN ("
+                            + queryIds + "))");
+
+
+            boolean done = false;
+            List<byte[]> listOfbytesFromDB = new ArrayList<>();
+
+            if (queryResults.getSize() > 0) {
+                while (!done) {
+                    for (SObject sObject : queryResults.getRecords()) {
+                        ContentVersion contentData = (ContentVersion) sObject;
+                        listOfbytesFromDB.add(contentData.getVersionData());
+                    }
+                    if (queryResults.isDone()) {
+                        done = true;
+                    } else {
+                        queryResults = enterpriseConnection.queryMore(queryResults.getQueryLocator());
+                    }
+                }
+            }
+            bigOpertaion.setListOfByteArrays(listOfbytesFromDB);
+            rabbitTemplate.convertAndSend(SpringBootHerokuExampleApplication.PDF_MERGE_QUEUE, bigOpertaion);
+        }catch (Exception e){
+
+        }finally {
+
         }
-        bigOpertaion.setListOfByteArrays(listOfbytesFromDB);
-        rabbitTemplate.convertAndSend(SpringBootHerokuExampleApplication.PDF_MERGE_QUEUE, bigOpertaion);
     }
 
 }
