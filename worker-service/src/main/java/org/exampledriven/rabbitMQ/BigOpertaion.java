@@ -9,8 +9,7 @@ public class BigOpertaion implements Serializable {
     private String accessToken;
     private String instanceURL;
     private boolean useSoap;
-    private List<File> filesToBeMerged;
-
+    private List<byte[]> listOfByteArrays;
 
     public String getFileIds() {
         return fileIds;
@@ -44,11 +43,11 @@ public class BigOpertaion implements Serializable {
         this.useSoap = useSoap;
     }
 
-    public List<File> getFilesToBeMerged() {
-        return filesToBeMerged;
+    public List<byte[]> getListOfByteArrays() {
+        return listOfByteArrays;
     }
 
-    public void setFilesToBeMerged(List<File> filesToBeMerged) {
-        this.filesToBeMerged = filesToBeMerged;
+    public void setListOfByteArrays(List<byte[]> listOfByteArrays) {
+        this.listOfByteArrays = listOfByteArrays;
     }
 }
